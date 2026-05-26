@@ -1,7 +1,12 @@
 import axios from 'axios'
 
+// Allow overriding API base in production via Vite env var `VITE_API_BASE`.
+// When empty, uses relative paths so a same-origin backend (or Vercel serverless
+// functions mounted at `/api`) will work out of the box.
+const base = import.meta.env.VITE_API_BASE ?? ''
+
 export const api = axios.create({
-  baseURL: '',        // Vite proxy handles /api → http://localhost:8000
+  baseURL: base,        // default: '' (relative)
   timeout: 30000,
   headers: { 'Content-Type': 'application/json' },
 })
