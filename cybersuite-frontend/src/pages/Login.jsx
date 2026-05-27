@@ -31,7 +31,11 @@ export default function Login() {
       login(data.access_token, email)
       navigate(from, { replace: true })
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.')
+      if (!err.response || err.response.status === 500) {
+        setError('Cannot connect to the backend server. Please make sure the backend API is running on port 8000.')
+      } else {
+        setError(err.response.data?.detail || 'Login failed. Please check your credentials.')
+      }
     } finally {
       setLoading(false)
     }

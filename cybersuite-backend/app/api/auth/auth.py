@@ -73,10 +73,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
 # ─── Login Endpoint ───────────────────────────────────────────────────────────
 @router.post("/login", response_model=TokenResponse)
 async def login(req: LoginRequest):
-    if req.email != DEMO_USER["email"] or not pwd_context.verify(req.password, DEMO_USER["hashed_password"]):
+    email = req.email.strip().lower()
+    if email != DEMO_USER["email"] or not pwd_context.verify(req.password, DEMO_USER["hashed_password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
         )
-    token = create_access_token({"sub": req.email})
+    token = create_access_token({"sub": email})
     return TokenResponse(access_token=token)
