@@ -84,8 +84,8 @@ export default function AttackMap() {
 
       <div className="flex flex-col xl:grid xl:grid-cols-4 gap-4 xl:h-[calc(100vh-120px)] xl:min-h-[600px]">
         {/* Globe Container */}
-        <GlassCard className="xl:col-span-3 overflow-hidden p-0 relative flex flex-col h-[380px] md:h-[480px] xl:h-full" delay={0.05}>
-          <div className="flex-1 relative">
+        <GlassCard noPad={true} className="xl:col-span-3 overflow-hidden relative flex flex-col h-[380px] md:h-[480px] xl:h-full" delay={0.05}>
+          <div className="flex-1 relative min-h-0 w-full">
             <CyberGlobe attacks={attacks} is3DView={is3DView} autoRotate={autoPlay} />
             
             {/* Absolute Legend inside Globe View */}
@@ -116,7 +116,7 @@ export default function AttackMap() {
         </GlassCard>
 
         {/* Attack Log */}
-        <GlassCard title="Attack Feed" className="overflow-hidden p-0 flex flex-col h-[250px] md:h-[300px] xl:h-full" delay={0.1}>
+        <GlassCard noPad={true} title="Attack Feed" className="overflow-hidden relative flex flex-col h-[250px] md:h-[300px] xl:h-full" delay={0.1}>
           <div className="flex-1 overflow-y-auto terminal p-3" style={{borderRadius:0}}>
             {logs.map((l)=>(
               <div key={l.id} className="flex gap-2 text-xs leading-relaxed border-b border-cyber-border/20 pb-1 mb-1">

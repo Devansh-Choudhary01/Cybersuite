@@ -30,6 +30,7 @@ class PasswordResponse(BaseModel):
 
 class WebsiteScanRequest(BaseModel):
     url: str = Field(..., example="https://example.com")
+    consent_confirmed: bool = Field(False, description="User confirms authorization to scan")
 
 
 class HeaderAnalysis(BaseModel):
@@ -65,6 +66,7 @@ class WebsiteScanResponse(BaseModel):
 
 class WordPressScanRequest(BaseModel):
     url: str = Field(..., example="https://wordpress-site.com")
+    consent_confirmed: bool = Field(False, description="User confirms authorization to scan")
 
 
 class WPFinding(BaseModel):
@@ -72,6 +74,11 @@ class WPFinding(BaseModel):
     name: str
     severity: str     # "low" | "medium" | "high" | "critical"
     detail: str
+
+
+class WPPlugin(BaseModel):
+    slug: str         # plugin directory name
+    readme_accessible: bool  # True if readme.txt is publicly readable (info leak)
 
 
 class WordPressScanResponse(BaseModel):
@@ -82,4 +89,5 @@ class WordPressScanResponse(BaseModel):
     xmlrpc_enabled: bool
     readme_exposed: bool
     findings: List[WPFinding]
+    plugins_found: List[WPPlugin] = []
     risk_score: int

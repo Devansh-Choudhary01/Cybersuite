@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import GlassCard from '../components/ui/GlassCard'
 import LoadingSpinner from '../components/ui/LoadingSpinner'
 import { api } from '../services/api'
 import toast from 'react-hot-toast'
-import { FiSend, FiMessageSquare, FiCpu, FiUser, FiMessageCircle, FiAlertTriangle } from 'react-icons/fi'
+import { FiSend, FiMessageSquare, FiCpu, FiUser, FiMessageCircle } from 'react-icons/fi'
 
 const WELCOME = {
   role: 'assistant',
@@ -60,7 +60,17 @@ export default function AIAssistantPage() {
   const [messages, setMessages] = useState([WELCOME])
   const [input, setInput]       = useState('')
   const [loading, setLoading]   = useState(false)
-  const bottomRef               = useRef(null)
+  const [model, setModel]       = useState('llama-3.3-70b-versatile')
+  
+  // Token counter states
+  const [promptTokens, setPromptTokens] = useState(0)
+  const [responseTokens, setResponseTokens] = useState(0)
+  const [sessionTokens, setSessionTokens] = useState(0)
+  const [allTimeTokens, setAllTimeTokens] = useState(() => {
+    return parseInt(localStorage.getItem('all_time_tokens') || '0', 10)
+  })
+
+  const bottomRef = useRef(null)
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -70,33 +80,58 @@ export default function AIAssistantPage() {
     const msg = text || input.trim()
     if (!msg || loading) return
     setInput('')
-    setMessages(prev => [...prev, { role: 'user', content: msg }])
+    
+    // Build user message
+    const userMsg = { role: 'user', content: msg }
+    const updatedMessages = [...messages, userMsg]
+    setMessages(updatedMessages)
     setLoading(true)
+
     try {
+      // Map all previous user/assistant messages to correct API format
+      const history = updatedMessages
+        .filter(m => m.role === 'user' || m.role === 'assistant')
+        .map(m => ({ role: m.role, content: m.content }))
+
       const res = await api.post('/api/ai/chat', {
-        message: msg,
-        history: messages.slice(-6),
+        messages: history,
+        model: model,
       })
+
+      // Add assistant response
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: res.data.reply,
-        topic: res.data.topic,
-        suggested_tools: res.data.suggested_tools,
+        content: res.data.message,
       }])
-    } catch {
+
+      // Update tokens
+      const tokens = res.data.tokens
+      if (tokens) {
+        setPromptTokens(tokens.prompt_tokens)
+        setResponseTokens(tokens.completion_tokens)
+        setSessionTokens(prev => prev + tokens.total_tokens)
+        setAllTimeTokens(prev => {
+          const updated = prev + tokens.total_tokens
+          localStorage.setItem('all_time_tokens', updated.toString())
+          return updated
+        })
+      }
+    } catch (err) {
       toast.error('AI assistant unavailable')
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Unable to reach the AI backend. Make sure the FastAPI server is running.',
+        content: 'Unable to reach the AI backend. Make sure the Groq API key is set and the FastAPI server is running.',
       }])
-    } finally { setLoading(false) }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
     <div className="page-container space-y-5">
       <div>
         <h1 className="text-2xl font-black text-white">AI <span className="gradient-text">Assistant</span></h1>
-        <p className="text-xs text-cyber-muted mt-1 font-mono">Cybersecurity knowledge engine — ask anything</p>
+        <p className="text-xs text-cyber-muted mt-1 font-mono">Cybersecurity knowledge engine — powered by Groq</p>
       </div>
 
       <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 lg:h-[calc(100vh-220px)] lg:min-h-[500px]">
@@ -118,29 +153,77 @@ export default function AIAssistantPage() {
         {/* Chat Window */}
         <div className="lg:col-span-3 glass flex flex-col overflow-hidden h-[450px] lg:h-full">
           {/* Header */}
-          <div className="flex items-center gap-2 px-4 py-3 border-b border-cyber-border/50 flex-shrink-0">
-            <FiMessageSquare size={14} className="text-cyber-purple" />
-            <span className="text-xs font-bold uppercase tracking-widest text-cyber-muted">CyberSuite AI</span>
-            <span className="ml-auto status-dot dot-online animate-pulse-slow" />
+          <div className="flex items-center justify-between px-4 py-3 border-b border-cyber-border/50 flex-shrink-0 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <FiMessageSquare size={14} className="text-cyber-purple" />
+              <span className="text-xs font-bold uppercase tracking-widest text-cyber-muted font-mono">CyberSuite AI</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <select
+                value={model}
+                onChange={e => setModel(e.target.value)}
+                className="bg-[#0c1322] border border-cyber-border/60 text-cyber-text text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-cyber-purple/50 transition-all font-mono"
+              >
+                <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Powerful)</option>
+                <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Fast)</option>
+                <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 (Balanced)</option>
+              </select>
+              <span className="status-dot dot-online animate-pulse-slow" />
+            </div>
+          </div>
+
+          {/* Token Counter Bar */}
+          <div className="flex items-center justify-between px-4 py-1.5 bg-black/40 border-b border-cyber-border/30 text-[10px] font-mono text-cyber-muted flex-wrap gap-2">
+            <div>
+              <span>Prompt: </span>
+              <span className="text-cyber-cyan font-bold">{promptTokens}</span>
+              <span className="mx-2">·</span>
+              <span>Response: </span>
+              <span className="text-cyber-purple font-bold">{responseTokens}</span>
+            </div>
+            <div>
+              <span>Session Total: </span>
+              <span className="text-cyber-green font-bold">{sessionTokens}</span>
+              <span className="mx-2">·</span>
+              <span>All-Time: </span>
+              <span className="text-amber-400 font-bold">{allTimeTokens}</span>
+            </div>
           </div>
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
             {messages.map((m, i) => <Message key={i} msg={m} />)}
+            
+            {/* Suggested Prompts when empty (only welcome message) */}
+            {messages.length <= 1 && (
+              <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+                <p className="text-[10px] text-cyber-muted font-mono uppercase tracking-widest">Suggested Prompts</p>
+                <div className="flex flex-col sm:flex-row gap-2 max-w-lg w-full px-4 justify-center">
+                  {[
+                    "Explain SQL Injection",
+                    "How to fix open port 22?",
+                    "What is a DMARC record?"
+                  ].map(promptText => (
+                    <button
+                      key={promptText}
+                      onClick={() => send(promptText)}
+                      className="px-4 py-2.5 rounded-lg text-xs font-mono text-cyber-muted hover:text-cyber-cyan bg-white/[0.02] border border-cyber-border/40 hover:border-cyber-cyan/30 hover:bg-cyan-500/5 transition-all text-center leading-snug"
+                    >
+                      {promptText}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {loading && (
               <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-cyber-purple/20 flex items-center justify-center text-cyber-purple"><FiCpu size={14} /></div>
-                <div className="glass border border-cyber-border px-4 py-3 rounded-xl">
-                  <div className="flex gap-1 items-center h-4">
-                    {[0,1,2].map(i => (
-                      <motion.div
-                        key={i}
-                        animate={{ y: [0,-4,0] }}
-                        transition={{ duration: 0.6, repeat: Infinity, delay: i*0.15 }}
-                        className="w-1.5 h-1.5 rounded-full bg-cyber-purple"
-                      />
-                    ))}
-                  </div>
+                <div className="w-8 h-8 rounded-full bg-cyber-purple/20 flex items-center justify-center text-cyber-purple">
+                  <FiCpu size={14} />
+                </div>
+                <div className="glass border border-cyber-border px-4 py-3 rounded-xl flex items-center gap-2">
+                  <LoadingSpinner size={12} label={null} />
+                  <span className="text-xs font-mono text-cyber-muted animate-pulse">⚡ Thinking...</span>
                 </div>
               </div>
             )}

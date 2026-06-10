@@ -4,310 +4,354 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   FiShield, FiSearch, FiAlertTriangle, FiZap,
   FiGlobe, FiClock, FiMessageSquare, FiFileText,
-  FiChevronDown, FiMenu, FiX, FiLogOut
+  FiChevronDown, FiMenu, FiX, FiLogOut,
+  FiRadio, FiDatabase, FiLock, FiActivity,
+  FiUser, FiCpu, FiGrid, FiMail, FiHelpCircle
 } from 'react-icons/fi'
 import { useAuthStore } from '../../store/authStore'
 
-const NAV_ITEMS = [
-  { label: 'Dashboard', path: '/', icon: FiShield },
+/* ─── Navigation structure ─── */
+const NAV = [
   {
-    label: 'Recon',
-    icon: FiSearch,
-    children: [
-      { label: 'Port Scanner',      path: '/recon/port-scanner' },
-      { label: 'Subdomain Finder',  path: '/recon/subdomain' },
-      { label: 'WHOIS Lookup',      path: '/recon/whois' },
-      { label: 'DNS Lookup',        path: '/recon/dns' },
-      { label: 'Network Scanner',   path: '/recon/network' },
+    group: 'Overview',
+    items: [
+      { label: 'Dashboard', path: '/', icon: FiGrid },
     ],
   },
   {
-    label: 'Vuln Scan',
-    icon: FiAlertTriangle,
-    children: [
-      { label: 'Password Checker',  path: '/vulnscan/password' },
-      { label: 'Website Scanner',   path: '/vulnscan/website' },
-      { label: 'WordPress Scanner', path: '/vulnscan/wordpress' },
+    group: 'Reconnaissance',
+    items: [
+      { label: 'Port Scanner',     path: '/recon/port-scanner', icon: FiSearch },
+      { label: 'Subdomain Finder', path: '/recon/subdomain',    icon: FiGlobe },
+      { label: 'WHOIS Lookup',     path: '/recon/whois',        icon: FiDatabase },
+      { label: 'DNS Lookup',       path: '/recon/dns',          icon: FiRadio },
+      { label: 'Network Scanner',  path: '/recon/network',      icon: FiActivity },
+      { label: 'SSL Checker',      path: '/recon/ssl-checker',  icon: FiLock },
     ],
   },
   {
-    label: 'Exploits',
-    icon: FiZap,
-    children: [
-      { label: 'SQL Injection Test', path: '/exploits/sqli' },
-      { label: 'XSS Tester',        path: '/exploits/xss' },
+    group: 'Vulnerability',
+    items: [
+      { label: 'Password Checker', path: '/vulnscan/password',  icon: FiLock },
+      { label: 'Website Scanner',  path: '/vulnscan/website',   icon: FiShield },
+      { label: 'WordPress Scan',   path: '/vulnscan/wordpress', icon: FiFileText },
     ],
   },
-  { label: 'Attack Map', path: '/attack-map',  icon: FiGlobe },
-  { label: 'History',    path: '/history',     icon: FiClock },
-  { label: 'AI',         path: '/ai',          icon: FiMessageSquare },
-  { label: 'Reports',    path: '/reports',     icon: FiFileText },
+  {
+    group: 'Exploits',
+    items: [
+      { label: 'SQL Injection',    path: '/exploits/sqli',      icon: FiDatabase },
+      { label: 'XSS Tester',      path: '/exploits/xss',       icon: FiZap },
+    ],
+  },
+  {
+    group: 'Intelligence',
+    items: [
+      { label: 'Attack Map',   path: '/attack-map',         icon: FiGlobe },
+      { label: 'Scan History', path: '/history',            icon: FiClock },
+      { label: 'AI Assistant', path: '/ai',                 icon: FiCpu },
+      { label: 'Reports',      path: '/reports',            icon: FiFileText },
+      { label: 'Email Headers',path: '/intelligence/email', icon: FiMail },
+    ],
+  },
 ]
 
-const DropMenu = ({ items, onClose }) => (
-  <motion.div
-    initial={{ opacity: 0, y: -8, scale: 0.96 }}
-    animate={{ opacity: 1, y: 0, scale: 1 }}
-    exit={{ opacity: 0, y: -8, scale: 0.96 }}
-    transition={{ duration: 0.18 }}
-    className="absolute top-full left-0 mt-2 w-52 glass border border-cyber-border rounded-xl overflow-hidden z-50 shadow-glass"
-  >
-    {items.map((item) => (
-      <Link
-        key={item.path}
-        to={item.path}
-        onClick={onClose}
-        className="flex items-center gap-2 px-4 py-3 text-sm text-cyber-muted hover:text-cyber-cyan hover:bg-white/5 transition-colors border-b border-cyber-border/30 last:border-0"
-      >
-        <span className="w-1.5 h-1.5 rounded-full bg-cyber-cyan/40 flex-shrink-0" />
-        {item.label}
-      </Link>
-    ))}
-  </motion.div>
-)
+/* Flatten for mobile search */
+const ALL_ITEMS = NAV.flatMap(g => g.items)
 
+/* ─── Sidebar nav item ─── */
+function SidebarItem({ item, isActive, onClick }) {
+  const { icon: Icon, label, path } = item
+  return (
+    <Link
+      to={path}
+      onClick={onClick}
+      className={`sidebar-item ${isActive ? 'active' : ''}`}
+    >
+      <Icon size={18} className="flex-shrink-0" />
+      <span className="truncate">{label}</span>
+    </Link>
+  )
+}
+
+/* ─── Sidebar (desktop) ─── */
+export function Sidebar() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { user, logout } = useAuthStore()
+  const [searchQ, setSearchQ] = useState('')
+
+  const handleLogout = () => { logout(); navigate('/login') }
+  const isActive = (path) => location.pathname === path
+
+  const filtered = searchQ.trim()
+    ? ALL_ITEMS.filter(i => i.label.toLowerCase().includes(searchQ.toLowerCase()))
+    : null
+
+  return (
+    <aside className="sidebar">
+      {/* Logo */}
+      <div className="flex items-center gap-3 px-5 py-5 border-b border-cyber-border/60">
+        <div
+          className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+          style={{ background: 'linear-gradient(135deg, #00C2FF, #3B82F6)' }}
+        >
+          <FiShield size={17} className="text-white" />
+        </div>
+        <div>
+          <p className="font-black text-lg leading-none tracking-tight text-white">
+            Cyber<span style={{ color: '#00C2FF' }}>Suite</span>
+          </p>
+          <p className="text-xs font-semibold tracking-widest text-cyber-muted uppercase mt-1">
+            Security Platform
+          </p>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="px-4 py-3 border-b border-cyber-border/40">
+        <div className="relative">
+          <FiSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-muted" />
+          <input
+            type="text"
+            placeholder="Search tools..."
+            value={searchQ}
+            onChange={e => setSearchQ(e.target.value)}
+            className="w-full bg-white/[0.04] border border-cyber-border/60 rounded-lg pl-9 pr-3 py-2 text-sm text-cyber-text placeholder-cyber-muted/60 outline-none focus:border-cyber-cyan/40 focus:bg-white/[0.06] transition-all"
+          />
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-2">
+        {filtered ? (
+          <div className="px-3 py-2">
+            {filtered.length > 0 ? filtered.map(item => (
+              <SidebarItem key={item.path} item={item} isActive={isActive(item.path)} onClick={() => setSearchQ('')} />
+            )) : (
+              <p className="text-sm text-cyber-muted px-3 py-4 text-center">No results</p>
+            )}
+          </div>
+        ) : (
+          NAV.map(group => (
+            <div key={group.group} className="mb-1">
+              <p className="section-label">{group.group}</p>
+              {group.items.map(item => (
+                <SidebarItem key={item.path} item={item} isActive={isActive(item.path)} />
+              ))}
+            </div>
+          ))
+        )}
+      </nav>
+
+      {/* Footer — user + logout */}
+      <div className="border-t border-cyber-border/60 p-4">
+        {/* Live status */}
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/5 border border-emerald-500/15 mb-3">
+          <span className="status-dot dot-online animate-pulse-slow" />
+          <span className="text-xs font-bold text-cyber-green">All Systems Operational</span>
+        </div>
+
+        {/* User row */}
+        <div className="flex items-center gap-3 px-1">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-cyber-cyan to-cyber-blue flex items-center justify-center flex-shrink-0">
+            <FiUser size={16} className="text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-cyber-text truncate">
+              {user?.email?.split('@')[0] || 'Admin'}
+            </p>
+            <p className="text-xs text-cyber-muted truncate">{user?.email}</p>
+          </div>
+          <button
+            id="sidebar-logout-btn"
+            onClick={handleLogout}
+            title="Sign out"
+            className="p-2 rounded-lg text-cyber-muted hover:text-cyber-red hover:bg-red-500/10 transition-all flex-shrink-0"
+          >
+            <FiLogOut size={14} />
+          </button>
+        </div>
+      </div>
+    </aside>
+  )
+}
+
+/* ─── Mobile top bar ─── */
 export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
-  const [openDrop, setOpenDrop] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
-  
-  // Search State
-  const [searchQuery, setSearchQuery] = useState('')
-  const [isSearching, setIsSearching] = useState(false)
-  const [searchResults, setSearchResults] = useState([])
+  const [searchQ, setSearchQ] = useState('')
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
+  const handleLogout = () => { logout(); navigate('/login') }
 
-  // Flatten items for search
-  const allServices = NAV_ITEMS.reduce((acc, item) => {
-    if (item.children) {
-      return [...acc, ...item.children.map(c => ({ ...c, category: item.label, icon: item.icon }))]
-    }
-    return [...acc, { ...item, category: 'Root' }]
-  }, [])
-
-  const handleSearch = (q) => {
-    setSearchQuery(q)
-    if (!q.trim()) { setSearchResults([]); return }
-    const filtered = allServices.filter(s => 
-      s.label.toLowerCase().includes(q.toLowerCase()) || 
-      s.category.toLowerCase().includes(q.toLowerCase())
-    )
-    setSearchResults(filtered)
-  }
-
-  const toggle = (label) => setOpenDrop(prev => prev === label ? null : label)
+  const currentLabel = ALL_ITEMS.find(i => i.path === location.pathname)?.label || 'CyberSuite'
 
   return (
-    <nav className="sticky top-0 z-50 glass border-b border-cyber-border/50">
-      <div className="w-full px-4 h-14 flex items-center gap-4">
+    <nav
+      className="sticky top-0 z-50 border-b border-cyber-border/50"
+      style={{
+        background: 'rgba(6, 10, 18, 0.96)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+      }}
+    >
+      <div className="w-full px-4 h-14 flex items-center gap-3">
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyber-cyan to-cyber-blue flex items-center justify-center shadow-neon-cyan">
-            <FiShield className="text-white" size={16} />
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg, #00C2FF, #3B82F6)' }}
+          >
+            <FiShield size={18} className="text-white" />
           </div>
           <span className="font-black text-lg tracking-tight">
-            <span className="gradient-text">Cyber</span>
+            <span style={{ color: '#00C2FF' }}>Cyber</span>
             <span className="text-white">Suite</span>
           </span>
         </Link>
 
-        {/* Right-side group: nav, status, mobile toggle */}
-        <div className="flex items-center gap-3 ml-auto">
+        {/* Current page breadcrumb */}
+        <div className="flex-1 flex items-center gap-2 ml-2 min-w-0">
+          <span className="text-cyber-border/60">/</span>
+          <span className="text-sm font-medium text-cyber-text-dim truncate">{currentLabel}</span>
+        </div>
 
-          {/* Desktop Nav — visible above 1100px via custom CSS */}
-          <div className="nav-desktop hidden items-center gap-1">
-          {NAV_ITEMS.map((item) => {
+        {/* Desktop nav — search + user */}
+        <div className="nav-desktop hidden items-center gap-2">
+          {/* Quick nav links */}
+          {NAV[0].items.map(item => {
             const Icon = item.icon
-            const isActive = item.path
-              ? location.pathname === item.path
-              : item.children?.some(c => location.pathname === c.path)
-
-            if (item.children) {
-              return (
-                <div 
-                  key={item.label} 
-                  className="relative"
-                  onMouseEnter={() => setOpenDrop(item.label)}
-                  onMouseLeave={() => setOpenDrop(null)}
-                >
-                  <button
-                    onClick={() => toggle(item.label)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                      isActive
-                        ? 'text-cyber-cyan bg-cyan-500/10'
-                        : 'text-cyber-muted hover:text-white hover:bg-white/5'
-                    }`}
-                  >
-                    <Icon size={14} />
-                    {item.label}
-                    <FiChevronDown
-                      size={12}
-                      className={`transition-transform ${openDrop === item.label ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                  <AnimatePresence>
-                    {openDrop === item.label && (
-                      <DropMenu items={item.children} onClose={() => setOpenDrop(null)} />
-                    )}
-                  </AnimatePresence>
-                </div>
-              )
-            }
-
+            const active = location.pathname === item.path
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                  isActive
+                  active
                     ? 'text-cyber-cyan bg-cyan-500/10'
                     : 'text-cyber-muted hover:text-white hover:bg-white/5'
                 }`}
               >
-                <Icon size={14} />
+                <Icon size={13} />
                 {item.label}
               </Link>
             )
           })}
-          </div>
 
-          {/* Service Search */}
-          <div className="relative group ml-4">
-            <div className={`flex items-center gap-2 px-3 py-1.5 glass rounded-xl border transition-all duration-300 ${isSearching ? 'border-cyber-cyan shadow-neon-cyan/20 w-64' : 'border-cyber-border/50 w-48'}`}>
-              <FiSearch className={isSearching ? 'text-cyber-cyan' : 'text-cyber-muted'} size={14} />
-              <input
-                type="text"
-                placeholder="Search services..."
-                className="bg-transparent border-none outline-none text-xs text-white placeholder:text-cyber-muted/50 w-full font-mono"
-                value={searchQuery}
-                onFocus={() => setIsSearching(true)}
-                onBlur={() => setTimeout(() => setIsSearching(false), 200)}
-                onChange={(e) => handleSearch(e.target.value)}
-              />
+          {/* Separator */}
+          <div className="w-px h-5 bg-cyber-border/60 mx-1" />
+
+          {/* User */}
+          {user && (
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyber-cyan to-cyber-blue flex items-center justify-center">
+                <FiUser size={11} className="text-white" />
+              </div>
+              <span className="text-xs font-mono text-cyber-muted hidden xl:block">{user.email}</span>
             </div>
-
-            {/* Search Results Dropdown */}
-            <AnimatePresence>
-              {isSearching && searchQuery && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  className="absolute top-full right-0 mt-2 w-72 glass border border-cyber-border rounded-xl overflow-hidden z-50 shadow-2xl"
-                >
-                  <div className="p-2 max-h-[400px] overflow-y-auto">
-                    {searchResults.length > 0 ? (
-                      searchResults.map((s) => (
-                        <Link
-                          key={s.path}
-                          to={s.path}
-                          onClick={() => { setSearchQuery(''); setIsSearching(false) }}
-                          className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-lg transition-colors group/item"
-                        >
-                          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-cyber-muted group-hover/item:text-cyber-cyan group-hover/item:bg-cyber-cyan/10 transition-colors">
-                            {s.icon ? <s.icon size={16} /> : <FiSearch size={16} />}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-white group-hover/item:text-cyber-cyan transition-colors truncate">
-                              {s.label}
-                            </p>
-                            <p className="text-[10px] text-cyber-muted uppercase tracking-tighter">
-                              {s.category}
-                            </p>
-                          </div>
-                        </Link>
-                      ))
-                    ) : (
-                      <div className="p-4 text-center">
-                        <p className="text-xs text-cyber-muted">No services found for "{searchQuery}"</p>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Logout + User — desktop only */}
-          <div className="nav-desktop hidden items-center gap-2 ml-2">
-            {user && <span className="text-xs font-mono" style={{ color: '#475569' }}>{user.email}</span>}
-            <button
-              id="navbar-logout-btn"
-              onClick={handleLogout}
-              title="Sign out"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all text-cyber-muted hover:text-cyber-red hover:bg-red-500/10"
-            >
-              <FiLogOut size={14} /> Sign Out
-            </button>
-          </div>
-
-          {/* Mobile Toggle — visible below 1100px */}
+          )}
           <button
-            className="nav-mobile p-2 text-cyber-muted hover:text-white"
-            onClick={() => setMobileOpen(p => !p)}
-            id="mobile-menu-toggle"
+            id="navbar-logout-btn"
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-cyber-muted hover:text-cyber-red hover:bg-red-500/10 transition-all"
           >
-            {mobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
+            <FiLogOut size={13} />
+            <span className="hidden xl:inline">Sign Out</span>
           </button>
         </div>
+
+        {/* Live indicator */}
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-emerald-500/20 bg-emerald-500/5 nav-desktop hidden">
+          <span className="status-dot dot-online animate-pulse-slow" />
+          <span className="text-xs font-bold text-cyber-green">LIVE</span>
+        </div>
+
+        {/* Disclaimer button */}
+        <button
+          onClick={() => window.dispatchEvent(new CustomEvent('open-disclaimer'))}
+          className="p-2 rounded-lg text-cyber-muted hover:text-white hover:bg-white/5 transition-all flex items-center justify-center"
+          title="Disclaimer & Capabilities"
+          id="disclaimer-info-btn"
+        >
+          <FiHelpCircle size={18} />
+        </button>
+
+        {/* Mobile toggle */}
+        <button
+          className="nav-mobile p-2 text-cyber-muted hover:text-white transition-colors"
+          onClick={() => setMobileOpen(p => !p)}
+          id="mobile-menu-toggle"
+        >
+          {mobileOpen ? <FiX size={19} /> : <FiMenu size={19} />}
+        </button>
       </div>
 
-      {/* Mobile Menu — visible below 1100px */}
+      {/* Mobile slide-down menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="nav-mobile border-t border-cyber-border/50 overflow-hidden"
+            transition={{ duration: 0.25 }}
+            className="nav-mobile border-t border-cyber-border/40 overflow-hidden"
           >
-            <div className="px-4 py-3 flex flex-col gap-1">
-              {NAV_ITEMS.map((item) => {
-                if (item.children) {
-                  return (
-                    <div key={item.label}>
-                      <p className="px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-cyber-muted">
+            {/* Search bar in mobile */}
+            <div className="px-4 pt-3 pb-1">
+              <div className="relative">
+                <FiSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-muted" />
+                <input
+                  type="text"
+                  placeholder="Search tools..."
+                  value={searchQ}
+                  onChange={e => setSearchQ(e.target.value)}
+                  className="w-full bg-white/[0.04] border border-cyber-border/60 rounded-lg pl-9 pr-3 py-2 text-sm text-cyber-text placeholder-cyber-muted/60 outline-none focus:border-cyber-cyan/40 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="px-4 py-2 max-h-[70vh] overflow-y-auto">
+              {NAV.map(group => (
+                <div key={group.group} className="mb-3">
+                  <p className="text-xs font-bold uppercase tracking-widest text-cyber-muted px-1 mb-1.5">
+                    {group.group}
+                  </p>
+                  {group.items.map(item => {
+                    const Icon = item.icon
+                    const active = location.pathname === item.path
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => { setMobileOpen(false); setSearchQ('') }}
+                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm mb-0.5 transition-all ${
+                          active
+                            ? 'text-cyber-cyan bg-cyan-500/10 border border-cyber-cyan/20'
+                            : 'text-cyber-muted hover:text-white hover:bg-white/5'
+                        }`}
+                      >
+                        <Icon size={18} />
                         {item.label}
-                      </p>
-                      {item.children.map(c => (
-                        <Link
-                          key={c.path}
-                          to={c.path}
-                          onClick={() => setMobileOpen(false)}
-                          className="block px-5 py-2 text-sm text-cyber-muted hover:text-cyber-cyan"
-                        >
-                          {c.label}
-                        </Link>
-                      ))}
-                    </div>
-                  )
-                }
-                return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-cyber-muted hover:text-cyber-cyan hover:bg-white/5"
-                  >
-                    <item.icon size={14} />
-                    {item.label}
-                  </Link>
-                )
-              })}
+                      </Link>
+                    )
+                  })}
+                </div>
+              ))}
+
               {/* Mobile logout */}
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-cyber-muted hover:text-cyber-red hover:bg-red-500/10 mt-2 border-t border-cyber-border/30 pt-3"
-              >
-                <FiLogOut size={14} /> Sign Out
-              </button>
+              <div className="border-t border-cyber-border/40 pt-3 mt-1">
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-cyber-muted hover:text-cyber-red hover:bg-red-500/10 w-full transition-all"
+                >
+                  <FiLogOut size={14} />
+                  Sign Out
+                </button>
+              </div>
             </div>
           </motion.div>
         )}

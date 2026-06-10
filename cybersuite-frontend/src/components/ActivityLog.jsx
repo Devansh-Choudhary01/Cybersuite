@@ -26,7 +26,7 @@ const SIM_LOGS = [
 const TYPE_STYLE = {
   info:    'text-cyber-muted',
   success: 'text-cyber-green',
-  warning: 'text-cyber-yellow',
+  warning: 'text-cyber-amber',
   error:   'text-cyber-red',
 }
 

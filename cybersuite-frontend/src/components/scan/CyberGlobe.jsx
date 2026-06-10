@@ -111,8 +111,8 @@ export default function CyberGlobe({ attacks = [], is3DView = true, autoRotate =
   useEffect(() => {
     if (!mountRef.current) return
 
-    const W = mountRef.current.clientWidth
-    const H = mountRef.current.clientHeight
+    const W = mountRef.current.clientWidth || 1
+    const H = mountRef.current.clientHeight || 1
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true })
     renderer.setSize(W, H)
@@ -232,9 +232,15 @@ export default function CyberGlobe({ attacks = [], is3DView = true, autoRotate =
     const resizeNode = mountRef.current
     const ro = new ResizeObserver(() => {
       if(!resizeNode) return
-      camera.aspect = resizeNode.clientWidth / resizeNode.clientHeight
+      const w = resizeNode.clientWidth || 1
+      const h = resizeNode.clientHeight || 1
+      
+      camera.aspect = w / h
+      const currentDist = Math.max(baseDist, baseDist / camera.aspect)
+      camera.position.z = Math.min(currentDist, 10.0)
+      
       camera.updateProjectionMatrix()
-      renderer.setSize(resizeNode.clientWidth, resizeNode.clientHeight)
+      renderer.setSize(w, h)
     })
     ro.observe(resizeNode)
 

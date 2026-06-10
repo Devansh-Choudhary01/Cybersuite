@@ -11,7 +11,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[settings.RATE_LIM
 
 # ─── Route Imports ────────────────────────────────────────────────────────────
 from app.api.auth import auth
-from app.api.recon import port_scanner, subdomain_finder, whois_lookup, dns_lookup, network_scanner
+from app.api.recon import port_scanner, subdomain_finder, whois_lookup, dns_lookup, network_scanner, ssl_checker
 from app.api.vulnscan import password_checker, website_scanner, wordpress_scanner
 from app.api.exploits import sqli_tester, xss_tester
 from app.api.ai import assistant
@@ -22,8 +22,8 @@ app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
     description="CyberSuite — Production Cybersecurity Platform API",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None,
 )
 
 # ─── Attach Limiter State (B2) ────────────────────────────────────────────────
@@ -39,6 +39,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ─── Security Headers Middleware ─────────────────────────────────────────────
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000"
+    return response
+
 # ─── Routers ──────────────────────────────────────────────────────────────────
 # Auth (B1)
 app.include_router(auth.router,              prefix="/api/auth",    tags=["Auth"])
@@ -49,6 +60,7 @@ app.include_router(subdomain_finder.router,  prefix="/api/recon",   tags=["Recon
 app.include_router(whois_lookup.router,      prefix="/api/recon",   tags=["Recon"])
 app.include_router(dns_lookup.router,        prefix="/api/recon",   tags=["Recon"])
 app.include_router(network_scanner.router,   prefix="/api/recon",   tags=["Recon"])
+app.include_router(ssl_checker.router,       prefix="/api/recon",   tags=["Recon"])
 
 # Vulnerability Scanners
 app.include_router(password_checker.router,  prefix="/api/vulnscan", tags=["VulnScan"])

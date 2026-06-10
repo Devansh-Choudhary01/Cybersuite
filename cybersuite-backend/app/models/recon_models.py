@@ -11,6 +11,7 @@ class PortScanRequest(BaseModel):
     start_port: Optional[int] = Field(None, ge=1, le=65535, example=1)
     end_port: Optional[int] = Field(None, ge=1, le=65535, example=1024)
     ports: Optional[List[int]] = Field(None, description="List of specific ports to scan")
+    consent_confirmed: bool = Field(False, description="User confirms authorization to scan")
 
 
 
@@ -35,6 +36,7 @@ class PortScanResponse(BaseModel):
 
 class SubdomainRequest(BaseModel):
     domain: str = Field(..., example="example.com")
+    consent_confirmed: bool = Field(False, description="User confirms authorization to scan")
 
     @field_validator("domain")
     @classmethod
@@ -50,6 +52,7 @@ class SubdomainResult(BaseModel):
     subdomain: str
     ip: Optional[str] = None
     status: str   # "alive" | "dead"
+    source: str = "wordlist"  # "wordlist" | "crt.sh"
 
 
 class SubdomainResponse(BaseModel):
@@ -57,12 +60,14 @@ class SubdomainResponse(BaseModel):
     found: List[SubdomainResult]
     total_checked: int
     total_found: int
+    total_from_crt: int = 0  # subdomains discovered via certificate transparency
 
 
 # ─── WHOIS Lookup ─────────────────────────────────────────────────────────────
 
 class WHOISRequest(BaseModel):
     domain: str = Field(..., example="example.com")
+    consent_confirmed: bool = Field(False, description="User confirms authorization to scan")
 
 
 class WHOISResponse(BaseModel):
@@ -76,6 +81,7 @@ class WHOISResponse(BaseModel):
     emails: Optional[List[str]] = None
     country: Optional[str] = None
     raw: Optional[str] = None
+    is_mocked: bool = False  # True when live WHOIS query failed and data is simulated
 
 
 # ─── DNS Lookup ───────────────────────────────────────────────────────────────
@@ -83,6 +89,7 @@ class WHOISResponse(BaseModel):
 class DNSRequest(BaseModel):
     domain: str = Field(..., example="example.com")
     record_type: Optional[str] = Field("ALL", example="A")
+    consent_confirmed: bool = Field(False, description="User confirms authorization to scan")
 
 
 class DNSRecord(BaseModel):
@@ -100,6 +107,7 @@ class DNSResponse(BaseModel):
 
 class NetworkScanRequest(BaseModel):
     host: str = Field(..., example="8.8.8.8")
+    consent_confirmed: bool = Field(False, description="User confirms authorization to scan")
 
 class NetworkScanResponse(BaseModel):
     host: str

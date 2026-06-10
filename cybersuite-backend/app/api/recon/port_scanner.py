@@ -29,12 +29,27 @@ SERVICE_MAP = {
 
 
 async def scan_port_tcp(host: str, port: int, timeout: float = 2.0) -> PortResult:
-    """Attempt a TCP connection to determine if port is open."""
+    """Attempt a TCP connection and grab banner if open."""
     try:
-        _, writer = await asyncio.wait_for(
+        reader, writer = await asyncio.wait_for(
             asyncio.open_connection(host, port),
             timeout=timeout
         )
+        
+        banner = None
+        try:
+            # Send dummy data for HTTP/HTTPS to trigger response
+            if port in (80, 443, 8080, 8443):
+                writer.write(b"HEAD / HTTP/1.0\r\n\r\n")
+                await writer.drain()
+                
+            banner_bytes = await asyncio.wait_for(reader.read(256), timeout=0.5)
+            if banner_bytes:
+                banner_raw = banner_bytes.decode('utf-8', errors='ignore').strip()
+                banner = banner_raw.split('\n')[0][:50].strip()
+        except Exception:
+            pass
+
         writer.close()
         try:
             await writer.wait_closed()
@@ -44,6 +59,7 @@ async def scan_port_tcp(host: str, port: int, timeout: float = 2.0) -> PortResul
             port=port,
             status="open",
             service=SERVICE_MAP.get(port, "unknown"),
+            banner=banner if banner else None
         )
     except (asyncio.TimeoutError, ConnectionRefusedError, OSError):
         return PortResult(port=port, status="closed")

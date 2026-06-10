@@ -8,6 +8,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
+# pyrefly: ignore [missing-import]
 from passlib.context import CryptContext
 from pydantic import BaseModel
 
@@ -22,14 +23,25 @@ router = APIRouter()
 # ─── Password Hashing ─────────────────────────────────────────────────────────
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Pre-hashed bcrypt of "demo1234"
-DEMO_USER = {
-    "email": "admin@cybersuite.io",
-    "hashed_password": pwd_context.hash("demo1234"),
+# Regenerate these hashes fresh at startup using the installed bcrypt implementation
+USERS_DB = {
+    "admin@cybersuite.com": {
+        "email": "admin@cybersuite.com",
+        "hashed_password": pwd_context.hash("admin123"),
+        "role": "admin",
+    },
+    "demo@cybersuite.com": {
+        "email": "demo@cybersuite.com",
+        "hashed_password": pwd_context.hash("demo1234"),
+        "role": "user",
+    },
 }
 
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return pwd_context.verify(plain_password, hashed_password)
 # ─── OAuth2 Scheme ────────────────────────────────────────────────────────────
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 
 # ─── Models ───────────────────────────────────────────────────────────────────
@@ -41,6 +53,20 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+
+# ─── Login Endpoint ───────────────────────────────────────────────────────────
+@router.post("/login", response_model=TokenResponse)
+async def login(req: LoginRequest):
+    email = req.email.strip().lower()
+    user = USERS_DB.get(email)
+    if not user or not verify_password(req.password, user["hashed_password"]):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+        )
+    token = create_access_token({"sub": email})
+    return TokenResponse(access_token=token)
 
 
 # ─── JWT helpers ──────────────────────────────────────────────────────────────
@@ -59,25 +85,12 @@ def verify_token(token: str) -> Optional[dict]:
 
 
 # ─── Dependency ───────────────────────────────────────────────────────────────
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
+async def get_current_user(token: Optional[str] = Depends(oauth2_scheme)) -> dict:
+    # Authentication disabled: allow anonymous access when no token
+    # or when token is invalid. Returns a lightweight user dict.
+    if not token:
+        return {"email": "anonymous@local"}
     payload = verify_token(token)
     if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        return {"email": "anonymous@local"}
     return {"email": payload.get("sub")}
-
-
-# ─── Login Endpoint ───────────────────────────────────────────────────────────
-@router.post("/login", response_model=TokenResponse)
-async def login(req: LoginRequest):
-    email = req.email.strip().lower()
-    if email != DEMO_USER["email"] or not pwd_context.verify(req.password, DEMO_USER["hashed_password"]):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-        )
-    token = create_access_token({"sub": email})
-    return TokenResponse(access_token=token)

@@ -25,7 +25,11 @@ def sanitize_host(host: str) -> str:
 
 
 def sanitize_url(url: str) -> str:
-    """Validate and clean a URL."""
+    """Validate and clean a URL, preserving path and query string.
+
+    Use this for exploit testers (XSS, SQLi) that need the full URL.
+    Blocks private / loopback hosts but keeps path + query intact.
+    """
     url = url.strip()
     if not url.startswith(('http://', 'https://')):
         url = 'https://' + url
@@ -34,7 +38,25 @@ def sanitize_url(url: str) -> str:
     if not parsed.netloc:
         raise HTTPException(status_code=400, detail="Invalid URL.")
 
-    sanitized_host = sanitize_host(parsed.netloc)
+    # Validate hostname (blocks private/loopback) but keep it as-is
+    sanitize_host(parsed.netloc.split(':')[0])  # strip port before check
+    return url  # return the full URL with path + query
+
+
+def sanitize_url_base(url: str) -> str:
+    """Validate URL and return only scheme://host (no path/query).
+
+    Use this for website/wordpress scanners that only need the base URL.
+    """
+    url = url.strip()
+    if not url.startswith(('http://', 'https://')):
+        url = 'https://' + url
+
+    parsed = urlparse(url)
+    if not parsed.netloc:
+        raise HTTPException(status_code=400, detail="Invalid URL.")
+
+    sanitized_host = sanitize_host(parsed.netloc.split(':')[0])
     return f"{parsed.scheme}://{sanitized_host}"
 
 

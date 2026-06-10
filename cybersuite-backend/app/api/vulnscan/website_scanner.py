@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from app.models.vuln_models import (
     WebsiteScanRequest, WebsiteScanResponse, HeaderAnalysis, SSLInfo
 )
-from app.core.security import sanitize_url
+from app.core.security import sanitize_url_base
 from app.api.auth.auth import get_current_user
 from app.core.audit import log_scan
 
@@ -64,13 +64,21 @@ def _check_ssl(hostname: str) -> SSLInfo:
         with socket.create_connection((hostname, 443), timeout=5) as sock:
             with ctx.wrap_socket(sock, server_hostname=hostname) as ssock:
                 cert = ssock.getpeercert()
+                cipher = ssock.cipher()
+                cipher_name = cipher[0] if cipher else "Unknown"
+                version = ssock.version() or "Unknown"
+                
                 issuer = dict(x[0] for x in cert.get("issuer", []))
                 subject = dict(x[0] for x in cert.get("subject", []))
                 expire_str = cert.get("notAfter", "")
                 expire_dt = datetime.strptime(expire_str, "%b %d %H:%M:%S %Y %Z").replace(tzinfo=timezone.utc)
                 days_left = (expire_dt - datetime.now(timezone.utc)).days
 
-                grade = "A+" if days_left > 90 else ("B" if days_left > 30 else "C")
+                grade = "A" if days_left > 90 else ("B" if days_left > 30 else "C")
+                if version not in ("TLSv1.2", "TLSv1.3"):
+                    grade = "F"
+                elif any(weak in cipher_name for weak in ["RC4", "DES", "MD5", "NULL"]):
+                    grade = "F"
 
                 return SSLInfo(
                     valid=True,
@@ -78,7 +86,7 @@ def _check_ssl(hostname: str) -> SSLInfo:
                     subject=subject.get("commonName", hostname),
                     expires_on=expire_dt.strftime("%Y-%m-%d"),
                     days_remaining=days_left,
-                    protocols=["TLS 1.2", "TLS 1.3"],
+                    protocols=[version, cipher_name],
                     grade=grade,
                 )
     except ssl.SSLCertVerificationError:
@@ -96,7 +104,7 @@ async def website_scan(
     """Analyse a website for security headers, SSL, and tech stack. Requires JWT auth and consent."""
     if not getattr(request, "consent_confirmed", False):
         raise HTTPException(status_code=403, detail="You must confirm authorization before scanning.")
-    url = sanitize_url(request.url)
+    url = sanitize_url_base(request.url)
     client_ip = http_request.client.host if http_request.client else "unknown"
     log_scan(current_user["email"], "website-scan", url, client_ip)
     hostname = url.split("//")[1].split("/")[0]

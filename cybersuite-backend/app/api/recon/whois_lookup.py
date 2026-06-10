@@ -61,7 +61,8 @@ async def whois_lookup(
             raw=str(w.text)[:2000] if w.text else None,
         )
     except Exception as e:
-        # Fallback to simulated data if whois library fails (e.g. absent whois binary on Windows)
+        # Fallback: return simulated data when whois library/binary fails.
+        # is_mocked=True signals the frontend to show a warning banner.
         now = datetime.now()
         return WHOISResponse(
             domain=domain,
@@ -73,5 +74,6 @@ async def whois_lookup(
             status=["clientTransferProhibited", "serverUpdateProhibited"],
             emails=["abuse@mockedregistrar.com"],
             country="US",
-            raw=f"Domain Name: {domain.upper()}\nRegistry Domain ID: 123456789_DOMAIN_COM-VRSN\nRegistrar: Mocked Registrar Inc.\nThis is a simulated response due to missing whois binaries."
+            raw=f"Domain Name: {domain.upper()}\nRegistry Domain ID: 123456789_DOMAIN_COM-VRSN\nRegistrar: Mocked Registrar Inc.\nThis is a simulated response due to missing whois binaries.",
+            is_mocked=True,
         )
