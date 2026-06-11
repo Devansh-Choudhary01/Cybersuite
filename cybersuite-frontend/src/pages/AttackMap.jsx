@@ -85,7 +85,7 @@ export default function AttackMap() {
       <div className="flex flex-col xl:grid xl:grid-cols-4 gap-4 xl:h-[calc(100vh-120px)] xl:min-h-[600px]">
         {/* Globe Container */}
         <GlassCard noPad={true} className="xl:col-span-3 overflow-hidden relative flex flex-col h-[380px] md:h-[480px] xl:h-full" delay={0.05}>
-          <div className="flex-1 relative min-h-0 w-full">
+          <div className="flex-1 relative min-h-0 w-full" style={{ position: 'relative', zIndex: 1, pointerEvents: 'none' }}>
             <CyberGlobe attacks={attacks} is3DView={is3DView} autoRotate={autoPlay} />
             
             {/* Absolute Legend inside Globe View */}

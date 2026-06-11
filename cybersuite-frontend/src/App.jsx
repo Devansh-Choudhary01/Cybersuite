@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Navbar, { Sidebar } from './components/layout/Navbar'
 import Dashboard       from './pages/Dashboard'
@@ -21,6 +21,11 @@ const P = ({ children }) => <ProtectedRoute>{children}</ProtectedRoute>
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const location = useLocation()
+
+  useEffect(() => {
+    setSidebarOpen(false)
+  }, [location.pathname])
 
   return (
     <div className="min-h-screen flex flex-col relative z-0">
