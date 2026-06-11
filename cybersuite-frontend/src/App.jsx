@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import Navbar, { Sidebar } from './components/layout/Navbar'
@@ -19,6 +20,8 @@ import DisclaimerModal from './components/ui/DisclaimerModal'
 const P = ({ children }) => <ProtectedRoute>{children}</ProtectedRoute>
 
 export default function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
   return (
     <div className="min-h-screen flex flex-col relative z-0">
 
@@ -48,18 +51,28 @@ export default function App() {
           <P>
             <div className="flex min-h-screen">
 
-              {/* Sidebar — hidden below md (768px), shown md+ */}
-              <div className="hidden md:flex md:w-60 xl:w-64 flex-shrink-0">
-                <Sidebar />
+              {/* Sidebar */}
+              <div
+                className={`fixed inset-y-0 left-0 z-40 transform transition-transform duration-300
+                  ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+                  md:translate-x-0 md:static md:z-auto md:w-60 xl:w-64 flex-shrink-0 bg-[#060a12]`}
+              >
+                <Sidebar onCloseMobile={() => setSidebarOpen(false)} />
               </div>
 
-              {/* Right column — mobile top bar + content */}
-              <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+              {/* Dark overlay behind sidebar on mobile when open */}
+              {sidebarOpen && (
+                <div
+                  className="fixed inset-0 bg-black/50 z-30 md:hidden"
+                  onClick={() => setSidebarOpen(false)}
+                />
+              )}
 
-                {/* Mobile top navbar — shown below md, hidden md+ */}
-                <div className="md:hidden">
-                  <Navbar />
-                </div>
+              {/* Right column — mobile top bar + content */}
+              <div className="flex-1 ml-0 flex flex-col min-w-0 overflow-x-hidden relative">
+
+                {/* Top Navbar */}
+                <Navbar onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
                 {/* Page content */}
                 <main className="flex-1 relative z-10">
