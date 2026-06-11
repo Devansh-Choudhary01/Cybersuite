@@ -39,18 +39,20 @@ export default function ScanResults({ data, type }) {
             ))}
           </div>
           {data.open_ports.length > 0 ? (
-            <table className="cyber-table">
-              <thead><tr><th>Port</th><th>Service</th><th>Status</th></tr></thead>
-              <tbody>
-                {data.open_ports.map(p => (
-                  <tr key={p.port}>
-                    <td className="font-mono text-cyber-cyan">{p.port}</td>
-                    <td className="text-cyber-text">{p.service || '—'}</td>
-                    <td><NeonBadge level="open">Open</NeonBadge></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="cyber-table">
+                <thead><tr><th>Port</th><th className="hidden sm:table-cell">Service</th><th>Status</th></tr></thead>
+                <tbody>
+                  {data.open_ports.map(p => (
+                    <tr key={p.port}>
+                      <td className="font-mono text-cyber-cyan">{p.port}</td>
+                      <td className="text-cyber-text hidden sm:table-cell">{p.service || '—'}</td>
+                      <td><NeonBadge level="open">Open</NeonBadge></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           ) : (
             <p className="text-cyber-muted text-sm text-center py-4">No open ports found in range.</p>
           )}
@@ -76,27 +78,29 @@ export default function ScanResults({ data, type }) {
           {data.found.length === 0 ? (
             <p className="text-cyber-muted text-sm text-center py-4">No live subdomains found.</p>
           ) : (
-            <table className="cyber-table">
-              <thead><tr><th>Subdomain</th><th>IP</th><th>Source</th><th>Status</th></tr></thead>
-              <tbody>
-                {data.found.map(s => (
-                  <tr key={s.subdomain}>
-                    <td className="font-mono text-cyber-cyan">{s.subdomain}</td>
-                    <td className="font-mono text-cyber-muted">{s.ip || '—'}</td>
-                    <td>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        s.source === 'crt.sh'
-                          ? 'bg-purple-500/20 text-purple-300'
-                          : 'bg-cyan-500/10 text-cyber-cyan'
-                      }`}>
-                        {s.source || 'wordlist'}
-                      </span>
-                    </td>
-                    <td><NeonBadge level={s.status}>{s.status}</NeonBadge></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="cyber-table">
+                <thead><tr><th>Subdomain</th><th>IP</th><th>Source</th><th>Status</th></tr></thead>
+                <tbody>
+                  {data.found.map(s => (
+                    <tr key={s.subdomain}>
+                      <td className="font-mono text-cyber-cyan">{s.subdomain}</td>
+                      <td className="font-mono text-cyber-muted">{s.ip || '—'}</td>
+                      <td>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          s.source === 'crt.sh'
+                            ? 'bg-purple-500/20 text-purple-300'
+                            : 'bg-cyan-500/10 text-cyber-cyan'
+                        }`}>
+                          {s.source || 'wordlist'}
+                        </span>
+                      </td>
+                      <td><NeonBadge level={s.status}>{s.status}</NeonBadge></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </>
       )}
@@ -134,7 +138,7 @@ export default function ScanResults({ data, type }) {
             <div className="space-y-1.5">
               <p className="text-[10px] uppercase tracking-widest text-cyber-muted mb-1">Findings</p>
               {data.findings.map((f, i) => (
-                <div key={i} className={`flex items-start gap-3 px-3 py-2 rounded-lg ${
+                <div key={i} className={`flex flex-col md:flex-row items-start gap-3 px-3 py-2 rounded-lg ${
                   f.severity === 'critical' ? 'bg-red-500/8' :
                   f.severity === 'high'     ? 'bg-orange-500/8' :
                   f.severity === 'medium'   ? 'bg-yellow-500/8' : 'bg-green-500/5'

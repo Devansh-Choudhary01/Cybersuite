@@ -56,7 +56,7 @@ export default function ScanTerminal({ isScanning, target, scanLines = [] }) {
   }
 
   return (
-    <div className="terminal" style={{ height: 260 }}>
+    <div className="terminal" style={{ maxHeight: 300 }}>
       {!isScanning && visibleLines.length === 0 && (
         <p className="info">{'> Awaiting target input...'}</p>
       )}

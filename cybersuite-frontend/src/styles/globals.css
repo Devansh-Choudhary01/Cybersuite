@@ -479,15 +479,52 @@ p  { font-size: clamp(0.9rem,  1.2vw, 1rem); color: var(--text-dim); line-height
 
 /* ─────────────────────────────────────────────
    Navbar breakpoint (mobile top bar)
+   Use 768px breakpoint so sidebar shows on tablets and up
 ───────────────────────────────────────────── */
 .nav-desktop { display: none !important; }
 .nav-mobile  { display: flex; }
 
-/* Show sidebar from 900px (tablets landscape, iPads) */
-@media (min-width: 900px) {
+/* Show sidebar from 768px (tablets and up) */
+@media (min-width: 768px) {
   .nav-desktop { display: flex !important; }
   .nav-mobile  { display: none !important; }
 }
+
+/* Mobile sidebar overlay (used by Navbar mobile toggle) */
+.mobile-sidebar-backdrop {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.mobile-sidebar-panel {
+  position: fixed; top: 0; left: 0; bottom: 0; z-index: 70;
+  width: min(320px, 86%);
+  background: rgba(6,10,18,0.98);
+  border-right: 1px solid var(--border);
+  padding: 12px 10px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure no horizontal scroll and safe padding on small screens */
+html, body, #root { overflow-x: hidden; }
+.page-container { padding-left: 16px; padding-right: 16px; }
+
+/* Terminal responsive heights */
+.terminal { max-height: 420px; }
+@media (max-width: 767px) {
+  .terminal { max-height: 300px; }
+  .btn-cyber { padding: 11px 18px; font-size: 0.95rem; }
+  /* Make tables scrollable on small screens */
+  .cyber-table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .cyber-table thead, .cyber-table tbody, .cyber-table tr { display: table; width: 100%; table-layout: fixed; }
+  /* Improve touch targets */
+  .sidebar-item, .tool-card, .btn-cyber, .nav-desktop a { min-height: 44px; }
+}
+
+/* Message bubble helper */
+.message-bubble { max-width: 95%; }
 
 /* ─────────────────────────────────────────────
    Global responsive grid helpers

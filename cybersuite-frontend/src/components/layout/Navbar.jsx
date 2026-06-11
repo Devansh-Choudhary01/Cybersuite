@@ -290,70 +290,94 @@ export default function Navbar() {
         </button>
       </div>
 
-      {/* Mobile slide-down menu */}
+      {/* Mobile overlay sidebar (slide-in from left) */}
       <AnimatePresence>
         {mobileOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="nav-mobile border-t border-cyber-border/40 overflow-hidden"
-          >
-            {/* Search bar in mobile */}
-            <div className="px-4 pt-3 pb-1">
-              <div className="relative">
-                <FiSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-muted" />
-                <input
-                  type="text"
-                  placeholder="Search tools..."
-                  value={searchQ}
-                  onChange={e => setSearchQ(e.target.value)}
-                  className="w-full bg-white/[0.04] border border-cyber-border/60 rounded-lg pl-9 pr-3 py-2 text-sm text-cyber-text placeholder-cyber-muted/60 outline-none focus:border-cyber-cyan/40 transition-all"
-                />
-              </div>
-            </div>
+          <>
+            <motion.div
+              className="mobile-sidebar-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              onClick={() => setMobileOpen(false)}
+            />
 
-            <div className="px-4 py-2 max-h-[70vh] overflow-y-auto">
-              {NAV.map(group => (
-                <div key={group.group} className="mb-3">
-                  <p className="text-xs font-bold uppercase tracking-widest text-cyber-muted px-1 mb-1.5">
-                    {group.group}
-                  </p>
-                  {group.items.map(item => {
-                    const Icon = item.icon
-                    const active = location.pathname === item.path
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => { setMobileOpen(false); setSearchQ('') }}
-                        className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm mb-0.5 transition-all ${
-                          active
-                            ? 'text-cyber-cyan bg-cyan-500/10 border border-cyber-cyan/20'
-                            : 'text-cyber-muted hover:text-white hover:bg-white/5'
-                        }`}
-                      >
-                        <Icon size={18} />
-                        {item.label}
-                      </Link>
-                    )
-                  })}
+            <motion.aside
+              className="mobile-sidebar-panel"
+              initial={{ x: -320 }}
+              animate={{ x: 0 }}
+              exit={{ x: -320 }}
+              transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+            >
+              {/* Logo + close */}
+              <div className="flex items-center justify-between px-3 py-3 mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #00C2FF, #3B82F6)' }}>
+                    <FiShield size={17} className="text-white" />
+                  </div>
+                  <div>
+                    <p className="font-black text-lg leading-none tracking-tight text-white">Cyber<span style={{ color: '#00C2FF' }}>Suite</span></p>
+                    <p className="text-xs font-semibold tracking-widest text-cyber-muted uppercase mt-1">Security Platform</p>
+                  </div>
                 </div>
-              ))}
-
-              {/* Mobile logout */}
-              <div className="border-t border-cyber-border/40 pt-3 mt-1">
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-cyber-muted hover:text-cyber-red hover:bg-red-500/10 w-full transition-all"
-                >
-                  <FiLogOut size={14} />
-                  Sign Out
+                <button onClick={() => setMobileOpen(false)} className="p-2 text-cyber-muted">
+                  <FiX size={18} />
                 </button>
               </div>
-            </div>
-          </motion.div>
+
+              {/* Search */}
+              <div className="px-3 mb-3">
+                <div className="relative">
+                  <FiSearch size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-cyber-muted" />
+                  <input
+                    type="text"
+                    placeholder="Search tools..."
+                    value={searchQ}
+                    onChange={e => setSearchQ(e.target.value)}
+                    className="w-full bg-white/[0.04] border border-cyber-border/60 rounded-lg pl-9 pr-3 py-2 text-sm text-cyber-text placeholder-cyber-muted/60 outline-none focus:border-cyber-cyan/40 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="px-2 overflow-y-auto" style={{ maxHeight: '70vh' }}>
+                {NAV.map(group => (
+                  <div key={group.group} className="mb-3 px-1">
+                    <p className="text-xs font-bold uppercase tracking-widest text-cyber-muted px-1 mb-1.5">{group.group}</p>
+                    {group.items.map(item => {
+                      const Icon = item.icon
+                      const active = location.pathname === item.path
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => { setMobileOpen(false); setSearchQ('') }}
+                          className={`flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm mb-0.5 transition-all ${
+                            active
+                              ? 'text-cyber-cyan bg-cyan-500/10 border border-cyber-cyan/20'
+                              : 'text-cyber-muted hover:text-white hover:bg-white/5'
+                          }`}
+                        >
+                          <Icon size={18} />
+                          {item.label}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                ))}
+
+                <div className="border-t border-cyber-border/40 pt-3 mt-2 px-2">
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm text-cyber-muted hover:text-cyber-red hover:bg-red-500/10 w-full transition-all"
+                  >
+                    <FiLogOut size={14} />
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            </motion.aside>
+          </>
         )}
       </AnimatePresence>
     </nav>
