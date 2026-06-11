@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from app.models.vuln_models import (
     WebsiteScanRequest, WebsiteScanResponse, HeaderAnalysis, SSLInfo
 )
-from app.core.security import sanitize_url_base
+from app.core.security import sanitize_url_base, resolve_host, is_private_ip, is_blocked_host
 from app.api.auth.auth import get_current_user
 from app.core.audit import log_scan
 
@@ -105,9 +105,15 @@ async def website_scan(
     if not getattr(request, "consent_confirmed", False):
         raise HTTPException(status_code=403, detail="You must confirm authorization before scanning.")
     url = sanitize_url_base(request.url)
+    hostname = url.split("//")[1].split("/")[0]
+    ip = resolve_host(hostname)
+
+    # Block private/internal ranges and blocked hostnames
+    if is_blocked_host(hostname) or (ip and is_private_ip(ip)):
+        raise HTTPException(status_code=403, detail="Scanning of private or blocked hosts is not allowed.")
+
     client_ip = http_request.client.host if http_request.client else "unknown"
     log_scan(current_user["email"], "website-scan", url, client_ip)
-    hostname = url.split("//")[1].split("/")[0]
 
     try:
         async with httpx.AsyncClient(timeout=10, follow_redirects=True) as client:

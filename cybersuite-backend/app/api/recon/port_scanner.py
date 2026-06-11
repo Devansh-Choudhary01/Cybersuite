@@ -3,7 +3,13 @@ import asyncio
 import time
 from fastapi import APIRouter, Depends, HTTPException, Request
 from app.models.recon_models import PortScanRequest, PortScanResponse, PortResult
-from app.core.security import sanitize_host, sanitize_port_range, resolve_host
+from app.core.security import (
+    sanitize_host,
+    sanitize_port_range,
+    resolve_host,
+    is_private_ip,
+    is_blocked_host,
+)
 from app.api.auth.auth import get_current_user
 from app.core.audit import log_scan
 
@@ -104,6 +110,10 @@ async def port_scan(
 
     host = sanitize_host(request.host)
     ip = resolve_host(host)
+
+    # Block private/internal ranges and blocked hostnames
+    if is_blocked_host(host) or (ip and is_private_ip(ip)):
+        raise HTTPException(status_code=403, detail="Scanning of private or blocked hosts is not allowed.")
 
     client_ip = http_request.client.host if http_request.client else "unknown"
     log_scan(current_user["email"], "port-scan", host, client_ip)

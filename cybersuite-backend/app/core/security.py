@@ -1,5 +1,6 @@
 import re
 import socket
+import ipaddress
 from urllib.parse import urlparse
 from fastapi import HTTPException
 from typing import Optional
@@ -90,3 +91,23 @@ def resolve_host(host: str) -> Optional[str]:
         return socket.gethostbyname(host)
     except socket.gaierror:
         return None
+
+
+# ─── Blocklists / Helpers ────────────────────────────────────────────────────
+BLOCKED_RANGES = [
+    "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16",
+    "127.0.0.0/8", "169.254.0.0/16", "0.0.0.0/8"
+]
+
+def is_private_ip(ip: str) -> bool:
+    try:
+        addr = ipaddress.ip_address(ip)
+        return any(addr in ipaddress.ip_network(r) for r in BLOCKED_RANGES)
+    except ValueError:
+        return False
+
+
+BLOCKED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "render.com", "vercel.app"]
+
+def is_blocked_host(host: str) -> bool:
+    return any(blocked in host.lower() for blocked in BLOCKED_HOSTS)
