@@ -27,10 +27,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # Regenerate these hashes fresh at startup using the installed bcrypt implementation
 # Load demo/admin credentials from environment variables to avoid hardcoding
-ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@cybersuite.local").strip().lower()
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin123")
-DEMO_EMAIL = os.getenv("DEMO_EMAIL", "demo@cybersuite.local").strip().lower()
-DEMO_PASSWORD = os.getenv("DEMO_PASSWORD", "demo1234")
+# Defaults updated per user request (override via env in production)
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "cdevansh45@gmail.com").strip().lower()
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Choudh@ry2129")
+DEMO_EMAIL = os.getenv("DEMO_EMAIL", "demo1234@gmail.com").strip().lower()
+DEMO_PASSWORD = os.getenv("DEMO_PASSWORD", "demo1234@")
 
 USERS_DB = {
     ADMIN_EMAIL: {
