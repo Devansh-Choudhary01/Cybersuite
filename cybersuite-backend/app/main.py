@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Request
+from fastapi.routing import APIRoute
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -94,3 +95,33 @@ async def root():
 @app.get("/health", tags=["Health"])
 async def health():
     return {"status": "healthy"}
+
+
+# ─── Per-route rate limits for sensitive endpoints ---------------------------
+# Apply stricter limits for a few sensitive routes while keeping the global
+# default (from settings.RATE_LIMIT_STRING) for everything else.
+_per_route_limits = {
+    "/api/auth/login": "5/minute",
+    "/api/recon/port-scan": "3/minute",
+    "/api/exploits/sqli-test": "5/minute",
+    "/api/exploits/xss-test": "5/minute",
+    "/api/ai/chat": "10/minute",
+}
+
+for route in list(app.routes):
+    try:
+        path = getattr(route, "path", None)
+        if not path:
+            continue
+        limit = _per_route_limits.get(path)
+        # Only wrap FastAPI APIRoute endpoints
+        if limit and isinstance(route, APIRoute):
+            original = route.endpoint
+            # Avoid double-wrapping
+            if not getattr(original, "__rate_limited_wrapped__", False):
+                wrapped = limiter.limit(limit)(original)
+                setattr(wrapped, "__rate_limited_wrapped__", True)
+                route.endpoint = wrapped
+    except Exception:
+        # Safety: don't fail startup for unexpected route shapes
+        continue
