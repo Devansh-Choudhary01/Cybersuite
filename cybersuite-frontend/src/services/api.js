@@ -1,8 +1,9 @@
 import axios from 'axios'
 import { useAuthStore } from '../store/authStore'
 
-// Allow overriding API base in production via Vite env var `VITE_API_BASE`.
-const base = import.meta.env.VITE_API_BASE ?? ''
+// Allow overriding API base in production via Vite env var `VITE_API_URL`.
+// Fallback to localhost for development.
+const base = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export const api = axios.create({
   baseURL: base,
