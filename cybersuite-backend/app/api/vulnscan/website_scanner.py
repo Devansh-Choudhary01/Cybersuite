@@ -20,7 +20,7 @@ SECURITY_HEADERS = {
         "recommendation": "Add HSTS to enforce HTTPS: max-age=31536000; includeSubDomains"
     },
     "Content-Security-Policy": {
-        "severity": "critical",
+        "severity": "warning",
         "recommendation": "Define a strict Content-Security-Policy to prevent XSS."
     },
     "X-Frame-Options": {
@@ -42,6 +42,14 @@ SECURITY_HEADERS = {
     "X-XSS-Protection": {
         "severity": "warning",
         "recommendation": "Add X-XSS-Protection: 1; mode=block (legacy browsers)."
+    },
+    "Cross-Origin-Opener-Policy": {
+        "severity": "warning",
+        "recommendation": "Add COOP header to prevent cross-origin attacks"
+    },
+    "Cross-Origin-Resource-Policy": {
+        "severity": "info",
+        "recommendation": "Add CORP header to control resource sharing"
     },
 }
 
@@ -126,12 +134,14 @@ async def website_scan(
 
     # Audit security headers
     header_results = []
-    risk_deductions = 0
+    risk_score = 100
     for header, meta in SECURITY_HEADERS.items():
         present = header.lower() in resp_headers
         if not present:
-            deduct = {"critical": 20, "warning": 10, "info": 5}
-            risk_deductions += deduct.get(meta["severity"], 0)
+            deduct = {"critical": 15, "warning": 7, "info": 3}
+            risk_score -= deduct.get(meta["severity"], 0)
+        if present:
+            risk_score += 5  # reward for having good headers
         header_results.append(HeaderAnalysis(
             header=header,
             present=present,
@@ -150,15 +160,15 @@ async def website_scan(
     loop = asyncio.get_event_loop()
     ssl_info = await loop.run_in_executor(None, _check_ssl, hostname)
     if not ssl_info.valid:
-        risk_deductions += 30
+        risk_score -= 30
 
-    risk_score = max(0, 100 - risk_deductions)
+    risk_score = max(0, min(100, risk_score))
 
     summary_map = {
-        range(80, 101): "Low risk — security headers mostly configured.",
-        range(50, 80):  "Moderate risk — several security headers missing.",
-        range(20, 50):  "High risk — critical security controls missing.",
-        range(0, 20):   "Critical risk — site is severely under-protected.",
+        range(85, 101): "Excellent — security headers well configured.",
+        range(65, 85):  "Good — minor security headers missing.",
+        range(40, 65):  "Moderate risk — several security headers missing.",
+        range(0, 40):   "High risk — critical security controls missing.",
     }
     summary = next((v for k, v in summary_map.items() if risk_score in k), "Unknown")
 
