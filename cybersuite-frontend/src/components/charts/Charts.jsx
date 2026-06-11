@@ -87,13 +87,14 @@ export function VulnDonutChart() {
       hoverOffset: 6,
     }],
   }
+  const isSmall = typeof window !== 'undefined' && window.innerWidth < 640
   const opts = {
     ...COMMON_OPTS,
     scales: {},
     plugins: {
       ...COMMON_OPTS.plugins,
       legend: {
-        position: 'right',
+        position: isSmall ? 'bottom' : 'right',
         labels: { color: '#94A3B8', font: { size: 11 }, padding: 14 },
       },
     },

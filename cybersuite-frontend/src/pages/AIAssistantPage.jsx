@@ -158,36 +158,25 @@ export default function AIAssistantPage() {
               <FiMessageSquare size={14} className="text-cyber-purple" />
               <span className="text-xs font-bold uppercase tracking-widest text-cyber-muted font-mono">CyberSuite AI</span>
             </div>
-            <div className="flex items-center gap-3">
-              <select
-                value={model}
-                onChange={e => setModel(e.target.value)}
-                className="bg-[#0c1322] border border-cyber-border/60 text-cyber-text text-xs rounded-lg px-2.5 py-1.5 outline-none focus:border-cyber-purple/50 transition-all font-mono"
-              >
-                <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Powerful)</option>
-                <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (Fast)</option>
-                <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 (Balanced)</option>
-              </select>
-              <span className="status-dot dot-online animate-pulse-slow" />
-            </div>
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex gap-2 flex-wrap">
+                  <button onClick={() => setModel('llama-3.3-70b-versatile')} className={`px-3 py-1.5 rounded-lg text-xs font-mono ${model === 'llama-3.3-70b-versatile' ? 'bg-cyber-purple/10 border-cyber-purple/30 text-cyber-purple' : 'bg-white/4 border-white/8 text-white/50'}`}>llama-3.3-70b-versatile</button>
+                  <button onClick={() => setModel('llama-3.1-8b-instant')} className={`px-3 py-1.5 rounded-lg text-xs font-mono ${model === 'llama-3.1-8b-instant' ? 'bg-cyber-purple/10 border-cyber-purple/30 text-cyber-purple' : 'bg-white/4 border-white/8 text-white/50'}`}>llama-3.1-8b-instant</button>
+                  <button onClick={() => setModel('mixtral-8x7b-32768')} className={`px-3 py-1.5 rounded-lg text-xs font-mono ${model === 'mixtral-8x7b-32768' ? 'bg-cyber-purple/10 border-cyber-purple/30 text-cyber-purple' : 'bg-white/4 border-white/8 text-white/50'}`}>mixtral-8x7b-32768</button>
+                </div>
+                <span className="status-dot dot-online animate-pulse-slow" />
+              </div>
           </div>
 
           {/* Token Counter Bar */}
-          <div className="flex items-center justify-between px-4 py-1.5 bg-black/40 border-b border-cyber-border/30 text-[10px] font-mono text-cyber-muted flex-wrap gap-2">
-            <div>
-              <span>Prompt: </span>
-              <span className="text-cyber-cyan font-bold">{promptTokens}</span>
-              <span className="mx-2">·</span>
-              <span>Response: </span>
-              <span className="text-cyber-purple font-bold">{responseTokens}</span>
+          <div className="flex items-center justify-between px-4 py-1.5 bg-black/40 border-b border-cyber-border/30 text-[10px] font-mono text-cyber-muted gap-2">
+            <div className="flex gap-3 overflow-x-auto no-scrollbar" style={{ maxWidth: '60%' }}>
+              <div><span>Prompt: </span><span className="text-cyber-cyan font-bold">{promptTokens}</span></div>
+              <div><span>Response: </span><span className="text-cyber-purple font-bold">{responseTokens}</span></div>
+              <div><span>Session Total: </span><span className="text-cyber-green font-bold">{sessionTokens}</span></div>
+              <div><span>All-Time: </span><span className="text-amber-400 font-bold">{allTimeTokens}</span></div>
             </div>
-            <div>
-              <span>Session Total: </span>
-              <span className="text-cyber-green font-bold">{sessionTokens}</span>
-              <span className="mx-2">·</span>
-              <span>All-Time: </span>
-              <span className="text-amber-400 font-bold">{allTimeTokens}</span>
-            </div>
+            <div className="ml-auto text-xs text-cyber-muted hidden md:block">Tokens · scroll on small screens</div>
           </div>
 
           {/* Messages */}
@@ -231,7 +220,7 @@ export default function AIAssistantPage() {
           </div>
 
           {/* Input */}
-          <div className="px-4 pb-4 pt-3 border-t border-cyber-border/50 flex gap-2 flex-shrink-0">
+          <div className="px-4 pb-4 pt-3 border-t border-cyber-border/50 flex gap-2 flex-shrink-0 mobile-sticky-input">
             <input
               className="cyber-input flex-1"
               placeholder="Ask about vulnerabilities, tools, techniques..."
@@ -240,8 +229,9 @@ export default function AIAssistantPage() {
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
               id="ai-chat-input"
               disabled={loading}
+              style={{ minHeight: 44 }}
             />
-            <button onClick={() => send()} disabled={loading || !input.trim()} className="btn-cyber px-4 flex-shrink-0" id="ai-send-btn"
+            <button onClick={() => send()} disabled={loading || !input.trim()} className="btn-cyber px-4 flex-shrink-0 w-20" id="ai-send-btn"
               style={{ borderColor:'rgba(139,92,246,0.4)', color:'#8B5CF6' }}>
               <FiSend size={14} />
             </button>
