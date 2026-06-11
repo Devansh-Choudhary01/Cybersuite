@@ -206,19 +206,19 @@ export default function EmailAnalyzer() {
 
   return (
     <div className="page-container animate-fadeIn">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-5 sm:mb-6 flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3">
             <FiMail className="text-cyber-cyan" />
             Email Header Analyzer
           </h1>
-          <p className="text-cyber-muted mt-1 text-sm">
+          <p className="text-cyber-muted mt-1 text-xs sm:text-sm">
             Paste raw email headers to analyze SPF, DKIM, DMARC, spoofing risks, and routing hops.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="lg:col-span-1 space-y-4">
           <div className="glass p-5 flex flex-col h-full">
             <div className="flex items-center gap-2 mb-3">
@@ -306,14 +306,14 @@ export default function EmailAnalyzer() {
                   Originating Sender
                 </h3>
                 {results.originatingIP ? (
-                  <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-start sm:items-center">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg bg-cyber-cyan/10 border border-cyber-cyan/30 flex items-center justify-center flex-shrink-0">
                         <FiGlobe className="text-cyber-cyan text-xl" />
                       </div>
                       <div>
                         <p className="text-xs text-cyber-muted font-bold uppercase mb-0.5">Originating IP</p>
-                        <p className="text-lg font-mono text-white">{results.originatingIP}</p>
+                        <p className="text-base sm:text-lg font-mono text-white">{results.originatingIP}</p>
                       </div>
                     </div>
 

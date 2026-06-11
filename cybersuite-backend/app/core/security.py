@@ -107,7 +107,7 @@ def is_private_ip(ip: str) -> bool:
         return False
 
 
-BLOCKED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "render.com", "vercel.app"]
+BLOCKED_HOSTS = ["localhost", "127.0.0.1", "0.0.0.0", "::1"]
 
 def is_blocked_host(host: str) -> bool:
     return any(blocked in host.lower() for blocked in BLOCKED_HOSTS)

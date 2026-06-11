@@ -135,14 +135,14 @@ export default function AIAssistantPage() {
       </div>
 
       <div className="flex flex-col lg:grid lg:grid-cols-4 gap-4 lg:h-[calc(100vh-220px)] lg:min-h-[500px]">
-        {/* Suggestions Sidebar */}
-        <GlassCard title="Quick Questions" className="lg:col-span-1 overflow-y-auto max-h-[165px] lg:max-h-none" delay={0.05}>
-          <div className="space-y-2">
+        {/* Suggestions Sidebar — row on mobile, col on lg+ */}
+        <GlassCard title="Quick Questions" className="lg:col-span-1 overflow-y-auto max-h-[180px] sm:max-h-[200px] lg:max-h-none" delay={0.05}>
+          <div className="flex flex-row flex-wrap gap-2 lg:flex-col lg:space-y-2">
             {SUGGESTIONS.map(s => (
-              <button
+                <button
                 key={s}
                 onClick={() => send(s)}
-                className="w-full text-left text-xs px-3 py-2.5 rounded-lg text-cyber-muted hover:text-cyber-cyan hover:bg-cyan-500/5 border border-transparent hover:border-cyan-500/20 transition-all leading-snug"
+                className="text-left text-xs px-3 py-2 sm:py-2.5 rounded-lg text-cyber-muted hover:text-cyber-cyan hover:bg-cyan-500/5 border border-transparent hover:border-cyan-500/20 transition-all leading-snug w-full"
               >
                 <FiMessageCircle className="inline mr-1" /> {s}
               </button>
@@ -151,18 +151,27 @@ export default function AIAssistantPage() {
         </GlassCard>
 
         {/* Chat Window */}
-        <div className="lg:col-span-3 glass flex flex-col overflow-hidden h-[450px] lg:h-full">
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-cyber-border/50 flex-shrink-0 flex-wrap gap-2">
+        <div className="lg:col-span-3 glass flex flex-col overflow-hidden min-h-[420px] sm:min-h-[480px] lg:h-full">
+          <div className="flex items-center justify-between px-3 sm:px-4 py-3 border-b border-cyber-border/50 flex-shrink-0 flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <FiMessageSquare size={14} className="text-cyber-purple" />
               <span className="text-xs font-bold uppercase tracking-widest text-cyber-muted font-mono">CyberSuite AI</span>
             </div>
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex gap-2 flex-wrap">
-                  <button onClick={() => setModel('llama-3.3-70b-versatile')} className={`px-3 py-1.5 rounded-lg text-xs font-mono ${model === 'llama-3.3-70b-versatile' ? 'bg-cyber-purple/10 border-cyber-purple/30 text-cyber-purple' : 'bg-white/4 border-white/8 text-white/50'}`}>llama-3.3-70b-versatile</button>
-                  <button onClick={() => setModel('llama-3.1-8b-instant')} className={`px-3 py-1.5 rounded-lg text-xs font-mono ${model === 'llama-3.1-8b-instant' ? 'bg-cyber-purple/10 border-cyber-purple/30 text-cyber-purple' : 'bg-white/4 border-white/8 text-white/50'}`}>llama-3.1-8b-instant</button>
-                  <button onClick={() => setModel('mixtral-8x7b-32768')} className={`px-3 py-1.5 rounded-lg text-xs font-mono ${model === 'mixtral-8x7b-32768' ? 'bg-cyber-purple/10 border-cyber-purple/30 text-cyber-purple' : 'bg-white/4 border-white/8 text-white/50'}`}>mixtral-8x7b-32768</button>
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Model selector — scrollable row on xs/sm */}
+                <div className="flex gap-1.5 flex-wrap">
+                  <button onClick={() => setModel('llama-3.3-70b-versatile')} className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-mono border transition-all ${model === 'llama-3.3-70b-versatile' ? 'bg-cyber-purple/10 border-cyber-purple/30 text-cyber-purple' : 'bg-white/[0.04] border-white/[0.08] text-white/50'}`}>
+                    <span className="hidden sm:inline">llama-3.3-70b</span>
+                    <span className="sm:hidden">70b</span>
+                  </button>
+                  <button onClick={() => setModel('llama-3.1-8b-instant')} className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-mono border transition-all ${model === 'llama-3.1-8b-instant' ? 'bg-cyber-purple/10 border-cyber-purple/30 text-cyber-purple' : 'bg-white/[0.04] border-white/[0.08] text-white/50'}`}>
+                    <span className="hidden sm:inline">llama-3.1-8b</span>
+                    <span className="sm:hidden">8b</span>
+                  </button>
+                  <button onClick={() => setModel('mixtral-8x7b-32768')} className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-mono border transition-all ${model === 'mixtral-8x7b-32768' ? 'bg-cyber-purple/10 border-cyber-purple/30 text-cyber-purple' : 'bg-white/[0.04] border-white/[0.08] text-white/50'}`}>
+                    <span className="hidden sm:inline">mixtral-8x7b</span>
+                    <span className="sm:hidden">mx</span>
+                  </button>
                 </div>
                 <span className="status-dot dot-online animate-pulse-slow" />
               </div>

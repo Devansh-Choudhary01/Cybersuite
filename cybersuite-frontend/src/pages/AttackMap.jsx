@@ -60,24 +60,24 @@ export default function AttackMap() {
         <p className="text-[10px] text-cyber-muted font-mono hidden md:block">Deterministic pattern visualization</p>
       </div>
 
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-black text-white">Simulated Attack <span className="gradient-text">Map</span></h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 flex-wrap">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-black text-white">Simulated Attack <span className="gradient-text">Map</span></h1>
           <p className="text-xs text-cyber-muted mt-1 font-mono">Simulated global cyber threat visualization</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           {Object.entries(stats).map(([r,n])=>(
-            <div key={r} className="text-center">
-              <p className="text-lg font-black" style={{color:COLORS[r]}}>{n}</p>
-              <p className="text-[10px] text-cyber-muted uppercase tracking-widest">{r}</p>
+            <div key={r} className="text-center min-w-[36px]">
+              <p className="text-base sm:text-lg font-black" style={{color:COLORS[r]}}>{n}</p>
+              <p className="text-[9px] sm:text-[10px] text-cyber-muted uppercase tracking-widest hidden xs:block sm:block">{r}</p>
             </div>
           ))}
-          <div className="w-px h-8 bg-cyber-border/50 mx-2" />
+          <div className="w-px h-7 bg-cyber-border/50 mx-1 hidden sm:block" />
           <button onClick={()=>setIs3D(!is3DView)} className={`btn-cyber ${is3DView?'btn-success':''}`}>
-            {is3DView ? <FiGlobe size={14}/> : <FiLayers size={14}/>} {is3DView ? '3D' : '2D'} View
+            {is3DView ? <FiGlobe size={14}/> : <FiLayers size={14}/>} {is3DView ? '3D' : '2D'}
           </button>
           <button onClick={()=>setAutoPlay(p=>!p)} className={`btn-cyber ${autoPlay?'':'btn-danger'}`}>
-            <FiZap size={12}/> {autoPlay ? 'Pause SIM' : 'Resume SIM'}
+            <FiZap size={12}/> {autoPlay ? 'Pause' : 'Resume'}
           </button>
         </div>
       </div>

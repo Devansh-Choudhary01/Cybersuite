@@ -48,16 +48,18 @@ export default function App() {
           <P>
             <div className="flex min-h-screen">
 
-              {/* Sidebar — visible >= 1100px */}
-              <div className="nav-desktop" style={{ width: 240, flexShrink: 0 }}>
+              {/* Sidebar — hidden below md (768px), shown md+ */}
+              <div className="hidden md:flex md:w-60 xl:w-64 flex-shrink-0">
                 <Sidebar />
               </div>
 
               {/* Right column — mobile top bar + content */}
               <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
 
-                {/* Mobile top navbar — hidden >= 1100px */}
-                <Navbar />
+                {/* Mobile top navbar — shown below md, hidden md+ */}
+                <div className="md:hidden">
+                  <Navbar />
+                </div>
 
                 {/* Page content */}
                 <main className="flex-1 relative z-10">

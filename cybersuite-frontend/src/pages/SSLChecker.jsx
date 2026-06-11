@@ -80,9 +80,9 @@ export default function SSLChecker() {
   return (
     <div className="page-container animate-fadeIn">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-5 sm:mb-6 flex items-start justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-black text-white flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl font-black text-white flex items-center gap-3">
             <FiLock className="text-cyber-cyan" />
             SSL/TLS{' '}
             <span style={{
@@ -98,7 +98,7 @@ export default function SSLChecker() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
 
         {/* Input Panel */}
         <div className="lg:col-span-1">

@@ -35,14 +35,19 @@
   --radius:      12px;
   --radius-lg:   16px;
 
-  /* Sidebar width */
-  --sidebar-w:   240px;
+  /* Sidebar width — must match App.jsx: md:w-60 (240px) xl:w-64 (256px) */
+  --sidebar-w: 240px;
 }
 
 /* ─────────────────────────────────────────────
    Reset & Base
 ───────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 html {
   scroll-behavior: smooth;
@@ -69,6 +74,35 @@ body {
     radial-gradient(ellipse 60% 40% at 90% 80%, rgba(168,85,247,0.05) 0%, transparent 50%),
     radial-gradient(rgba(0,194,255,0.03) 1px, transparent 1px);
   background-size: 100% 100%, 100% 100%, 30px 30px;
+}
+
+/* -----------------------------
+   Safari / iOS Compatibility
+   - small, non-invasive fixes to improve behaviour on Safari/iOS
+   ----------------------------- */
+
+/* Smooth scrolling on iOS / Safari */
+html {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Inputs: remove default iOS styling that conflicts with design tokens */
+input, textarea, button {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+}
+
+/* Sticky navbar fallback for older Safari */
+.navbar {
+  position: -webkit-sticky;
+  position: sticky;
+}
+
+/* Flex gap fallback for older Safari builds */
+.flex {
+  gap: inherit;
 }
 
 /* ─────────────────────────────────────────────
@@ -478,17 +512,13 @@ p  { font-size: clamp(0.9rem,  1.2vw, 1rem); color: var(--text-dim); line-height
 }
 
 /* ─────────────────────────────────────────────
-   Navbar breakpoint (mobile top bar)
-   Use 768px breakpoint so sidebar shows on tablets and up
+   Sidebar layout
+   nav-desktop / nav-mobile visibility is now
+   controlled by Tailwind md: prefixes in JSX.
+   These stubs remain only for any legacy reference.
 ───────────────────────────────────────────── */
-.nav-desktop { display: none !important; }
-.nav-mobile  { display: flex; }
-
-/* Show sidebar from 768px (tablets and up) */
-@media (min-width: 768px) {
-  .nav-desktop { display: flex !important; }
-  .nav-mobile  { display: none !important; }
-}
+.nav-desktop { /* controlled by hidden md:flex in JSX */ }
+.nav-mobile  { /* controlled by md:hidden in JSX */ }
 
 /* Mobile sidebar overlay (used by Navbar mobile toggle) */
 .mobile-sidebar-backdrop {
@@ -499,12 +529,15 @@ p  { font-size: clamp(0.9rem,  1.2vw, 1rem); color: var(--text-dim); line-height
 }
 .mobile-sidebar-panel {
   position: fixed; top: 0; left: 0; bottom: 0; z-index: 70;
-  width: min(320px, 86%);
+  /* 86vw on very small screens, capped at 320px */
+  width: min(320px, 86vw);
   background: rgba(6,10,18,0.98);
   border-right: 1px solid var(--border);
   padding: 12px 10px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  /* Safe area for notched phones */
+  padding-left: max(10px, env(safe-area-inset-left));
 }
 
 /* Ensure no horizontal scroll and safe padding on small screens */
@@ -556,8 +589,8 @@ html, body, #root { overflow-x: hidden; }
   .cyber-table td, .cyber-table th { padding: 10px 10px; font-size: 12px; }
 }
 
-/* iPad / tablet tweaks */
-@media (min-width: 768px) and (max-width: 1024px) {
+/* iPad / tablet tweaks — sidebar already shown via md:w-60 */
+@media (min-width: 768px) and (max-width: 1023px) {
   .sidebar { width: 220px; }
   :root { --sidebar-w: 220px; }
 }

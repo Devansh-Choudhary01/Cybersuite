@@ -220,8 +220,8 @@ export default function Navbar() {
           <span className="text-sm font-medium text-cyber-text-dim truncate">{currentLabel}</span>
         </div>
 
-        {/* Desktop nav — search + user */}
-        <div className="nav-desktop hidden items-center gap-2">
+        {/* Desktop nav — search + user (hidden below md) */}
+        <div className="hidden md:flex items-center gap-2">
           {/* Quick nav links */}
           {NAV[0].items.map(item => {
             const Icon = item.icon
@@ -264,8 +264,8 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Live indicator */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-emerald-500/20 bg-emerald-500/5 nav-desktop hidden">
+        {/* Live indicator — hidden below md */}
+        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
           <span className="status-dot dot-online animate-pulse-slow" />
           <span className="text-xs font-bold text-cyber-green">LIVE</span>
         </div>
@@ -280,9 +280,9 @@ export default function Navbar() {
           <FiHelpCircle size={18} />
         </button>
 
-        {/* Mobile toggle */}
+        {/* Mobile toggle — shown below md, hidden md+ */}
         <button
-          className="nav-mobile p-2 text-cyber-muted hover:text-white transition-colors"
+          className="md:hidden p-2 text-cyber-muted hover:text-white transition-colors"
           onClick={() => setMobileOpen(p => !p)}
           id="mobile-menu-toggle"
         >
